@@ -1,0 +1,1423 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>The Impact</title>
+    <script src="phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <script type="text/javascript">
+        var config = {
+          //  type: Phaser.AUTO,
+            width: 1280,
+            height: 720,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 500 },
+                    debug: false
+                }
+            },
+            input: { gamepad: true },
+            scene: { preload: preload, create: create, update: update },
+            pixelArt: true
+
+
+        };
+
+        var game = new Phaser.Game(config);
+
+        function preload() {
+
+            this.load.tilemapTiledJSON("carte", "assets/crypt2.json");
+            
+            this.load.spritesheet('perso', 'assets/moove_03.png', { frameWidth: 48, frameHeight: 48 }); //Preload des ressources utilisés
+            this.load.image('crypt2', 'assets/crypt2.png');
+            this.load.image('Healthbar05', 'assets/Healthbar05.png');
+            this.load.image('Healthbar04', 'assets/Healthbar04.png');
+            this.load.image('Healthbar03', 'assets/Healthbar03.png');
+            this.load.image('Healthbar02', 'assets/Healthbar02.png');
+            this.load.image('Healthbar01', 'assets/Healthbar01.png');
+            this.load.image('Surface0','assets/testSurface.png');
+            this.load.image('pics','assets/testSurface.png');
+            this.load.image('dummy','assets/Human1.png');
+            this.load.image('casque','assets/Human2.png');
+            this.load.image('invisibleSprite','assets/Slash.png');
+            this.load.image('crate','assets/crate.png');
+            this.load.image('crate2','assets/crate2.png');
+            this.load.image('trap','assets/trap.png');
+            this.load.image('visionSprite','assets/Slash.png');
+            this.load.image('testplateform','assets/Slash.png');
+            this.load.image('Heal','assets/Heal.png');
+            this.load.image('Plateforme','assets/plateform.png');
+            
+
+            
+        }
+
+        var cursors;
+        var player;
+        var dummy1Speed = 50;
+        var dummy1aggro = 0;
+        var dummy1Vision;
+        var casque1Vision;
+        var hp = 4;
+        var scoreText;
+        var gameOver = false;
+        var invincibility = false;
+        var chrono = 0;
+        var hp_bar;
+
+        var offsetX = 15; 
+        var offsetY = -5;  
+        var offset2X = -43;  
+        var offset2Y = -5;  
+        var offset3X = -10;  
+        var offset3Y = -35;
+
+        var endX = 4000;
+        var endX2 = 2750;
+        var endX3 = 1566;
+
+        var dummy1isChasing = false;
+        var dummy2isChasing = false;
+        var dummy3isChasing = false;
+        var dummy4isChasing = false;
+        var dummy5isChasing = false;
+        var dummy6isChasing = false;
+
+        var casque3isChasing = false;
+
+        var sens = 1;
+
+        function create() {
+
+ //----------------------Murs grimpables: ---------------------------------
+
+
+            Surface = this.physics.add.group({ // Création d'un groupe de sprite invisible qui gères le fait de pouvoir grimper aux murs
+                immovable:true,
+                allowGravity: false,
+                climb : true,
+                setvisible : false,
+            })
+
+
+            var Surface1 = Surface.create(337,1706,'Surface0'); // Création des surfaces en question
+            Surface1.setSize(25, 300);
+            Surface1.setOffset(212, -80);
+
+            var Surface2 = Surface.create(558,1876,'Surface0');
+            Surface2.setSize(25, 335);
+            Surface2.setOffset(165, -255);
+
+            var Surface3 = Surface.create(740,1853,'Surface0');
+            Surface3.setSize(25, 150);
+            Surface3.setOffset(190, -425);
+
+            var Surface4 = Surface.create(910,1973,'Surface0');
+            Surface4.setSize(50,500);
+            Surface4.setOffset(140, -500);
+
+            var Surface5 = Surface.create(1457,1800,'Surface0');
+            Surface5.setSize(50, 150);
+            Surface5.setOffset(210, -150);
+
+            var Surface6 = Surface.create(1557,1600,'Surface0');
+            Surface6.setSize(10, 120);
+            Surface6.setOffset(210, -140);
+
+            var Surface7 = Surface.create(1557,1600,'Surface0');
+            Surface7.setSize(10, 120);
+            Surface7.setOffset(210, -330);
+
+            var Surface8 = Surface.create(2004,1600,'Surface0');
+            Surface8.setSize(35, 25);
+            Surface8.setOffset(275, -235);
+
+            var Surface9 = Surface.create(2130,1320,'Surface0');
+            Surface9.setSize(75, 600);
+            Surface9.setOffset(210, -270);
+
+            var Surface10 = Surface.create(4753,2150,'Surface0');
+            Surface10.setSize(25, 150);
+            Surface10.setOffset(210, -125);
+
+            var Surface11 = Surface.create(4516,2280,'Surface0');
+            Surface11.setSize(25, 50);
+            Surface11.setOffset(255, -90);
+
+            var Surface122 = Surface.create(4526,1992,'Surface0');
+            Surface122.setSize(30, 170);
+            Surface122.setOffset(185, -540);
+
+            var Surface123 = Surface.create(4526,1992,'Surface0');
+            Surface123.setSize(30, 280);
+            Surface123.setOffset(185, -210);
+
+            var Surface121 = Surface.create(4337,1416,'Surface0');
+            Surface121.setSize(30, 500);
+            Surface121.setOffset(185, -520);
+
+            var Surface12 = Surface.create(3796,1416,'Surface0');
+            Surface12.setSize(30, 30);
+            Surface12.setOffset(205, -55);
+
+            var Surface13 = Surface.create(3598,1320,'Surface0');
+            Surface13.setSize(30, 175);
+            Surface13.setOffset(190, -180);
+
+            var Surface14 = Surface.create(3700,1192,'Surface0');
+            Surface14.setSize(30, 575);
+            Surface14.setOffset(180, -650);
+
+            var Surface15 = Surface.create(3185,2664,'Surface0');
+            Surface15.setSize(30, 50);
+            Surface15.setOffset(160, -90);
+
+            var Surface16 = Surface.create(1907,2774,'Surface0');
+            Surface16.setSize(30, 30);
+            Surface16.setOffset(160, -136);
+
+            var Surface17 = Surface.create(427,3208,'Surface0');
+            Surface17.setSize(30, 30);
+            Surface17.setOffset(166, -90);
+
+            var Surface18 = Surface.create(1907,2792,'Surface0');
+            Surface18.setSize(30, 57);
+            Surface18.setOffset(0, -50);
+
+            var Surface19 = Surface.create(4270,1736,'Surface0');
+            Surface19.setSize(30, 100   );
+            Surface19.setOffset(190, -125);
+
+            var Surface20 = Surface.create(2670,400,'Surface0');
+            Surface20.setSize(30, 30);
+            Surface20.setOffset(275, 93);
+            
+
+            var Surface21 = Surface.create(2670,700,'Surface0');
+            Surface21.setSize(30, 90);
+            Surface21.setOffset(295, -105);
+
+            var Surface22 = Surface.create(2670,700,'Surface0');
+            Surface22.setSize(30, 60);
+            Surface22.setOffset(295, 55);
+
+            var Surface23 = Surface.create(2670,400,'Surface0');
+            Surface23.setSize(30, 30);
+            Surface23.setOffset(275, -35);
+
+            var Surface24 = Surface.create(2670,400,'Surface0');
+            Surface24.setSize(30, 30);
+            Surface24.setOffset(170, 32);
+
+            var Surface25 = Surface.create(2670,400,'Surface0');
+            Surface25.setSize(30, 30);
+            Surface25.setOffset(170, -100);
+
+            var Surface26 = Surface.create(2670,400,'Surface0');
+            Surface26.setSize(30, 60);
+            Surface26.setOffset(275, -160);
+
+            var Surface27 = Surface.create(2670,400,'Surface0');
+            Surface27.setSize(30, 30);
+            Surface27.setOffset(275, -225);
+
+            var Surface28 = Surface.create(2670,400,'Surface0');
+            Surface28.setSize(30, 350);
+            Surface28.setOffset(60, -150);
+
+
+
+            
+
+            
+
+ //----------------------Pièges: ---------------------------------
+
+
+            pics = this.physics.add.group({ 
+                immovable:true,
+                allowGravity: false,
+                setvisible : false,
+            })
+
+        
+
+            var pics2 = pics.create(2197,3048,'pics'); 
+            pics2.setSize(100, 50);
+            pics2.setOffset(140, 0);
+
+            var pics3 = pics.create(2197,3048,'pics'); 
+            pics3.setSize(75, 50);
+            pics3.setOffset(10, 0);
+
+            var pics4 = pics.create(1810,3048,'pics'); 
+            pics4.setSize(185, 50);
+            pics4.setOffset(100, 0);
+
+            var pics4 = pics.create(1810,3048,'pics'); 
+            pics4.setSize(150, 50);
+            pics4.setOffset(-80, 0);
+
+ //---------------------- : ---------------------------------
+
+            this.spriteInvisible = this.physics.add.sprite(0, 0, 'invisibleSprite').setVisible(true);
+            this.spriteInvisible.body.setAllowGravity(false)
+            this.spriteInvisible.setSize(25, 30);
+            this.spriteInvisible.setOffset(17, 0);
+
+
+        //----------------------Caisses : ---------------------------------
+
+
+            
+            
+
+           
+
+
+            this.caisse3 = this.physics.add.sprite(1250, 1928, 'crate');
+            this.caisse3.body.setAllowGravity(true);
+            this.caisse3.body.setGravityY(500);
+            this.caisse3.body.setVelocityX(0);
+            this.caisse3.setSize(55, 55);
+            this.caisse3.setOffset(0, 0);
+            this.caisse3.setDepth(5);
+
+            this.caisse4 = this.physics.add.sprite(3246, 2056, 'crate');
+            this.caisse4.body.setAllowGravity(true);
+            this.caisse4.body.setGravityY(500);
+            this.caisse4.body.setVelocityX(0);
+            this.caisse4.setSize(0, 0);
+            this.caisse4.setOffset(0, 0);
+            this.caisse4.setDepth(5);
+
+            this.caisse5 = this.physics.add.sprite(3790, 487, 'crate');
+            this.caisse5.body.setAllowGravity(true);
+            this.caisse5.body.setGravityY(500);
+            this.caisse5.body.setVelocityX(0);
+            this.caisse5.setSize(0, 0);
+            this.caisse5.setOffset(0, 0);
+            this.caisse5.setDepth(5);
+
+            this.caisse6 = this.physics.add.sprite(1803, 2600, 'crate');
+            this.caisse6.body.setAllowGravity(true);
+            this.caisse6.body.setGravityY(500);
+            this.caisse6.body.setVelocityX(0);
+            this.caisse6.setSize(0, 0);
+            this.caisse6.setOffset(0, 0);
+            this.caisse6.setDepth(5);
+
+            this.caisse7 = this.physics.add.sprite(2652, 104, 'crate');
+            this.caisse7.body.setAllowGravity(true);
+            this.caisse7.body.setGravityY(500);
+            this.caisse7.body.setVelocityX(0);
+            this.caisse7.setSize(0, 0);
+            this.caisse7.setOffset(0, 0);
+            this.caisse7.setDepth(5);
+
+
+
+ //----------------------plateforms: ---------------------------------
+
+            this.plateform = this.physics.add.sprite(3300, 2170, 'Plateforme');
+            this.plateform.body.setAllowGravity(false)
+            this.plateform.setSize(100, 25);
+            this.plateform.setOffset(0, 0);
+            this.plateform.setImmovable(true);
+            this.plateform.setDepth(5);
+
+            this.plateform2 = this.physics.add.sprite(3587, 600, 'Plateforme');
+            this.plateform2.body.setAllowGravity(false)
+            this.plateform2.setSize(100, 25);
+            this.plateform2.setOffset(0, 0);
+            this.plateform2.setImmovable(true);
+            this.plateform2.setDepth(5);
+
+            this.plateform3 = this.physics.add.sprite(2480, 600, 'Plateforme');
+            this.plateform3.body.setAllowGravity(false)
+            this.plateform3.setSize(100, 25);
+            this.plateform3.setOffset(0, 0);
+            this.plateform3.setImmovable(true);
+            this.plateform3.setDepth(5);
+
+            
+
+
+
+//--traps destructibles :--------------------------------------
+            this.trap = this.physics.add.sprite(1165,1982, 'trap');
+            this.trap.body.setAllowGravity(false)
+            this.trap.setSize(100,50);
+            this.trap.setOffset(0,0);
+            this.trap.setImmovable(true);
+            this.trap.setDepth(5);
+
+            this.trap2 = this.physics.add.sprite(3720,2355, 'trap');
+            this.trap2.body.setAllowGravity(false)
+            this.trap2.setSize(100,50);
+            this.trap2.setOffset(0,0);
+            this.trap2.setImmovable(true);
+            this.trap2.setDepth(5);
+
+            this.trap3 = this.physics.add.sprite(3715,1910, 'trap');
+            this.trap3.body.setAllowGravity(false)
+            this.trap3.setSize(100,50);
+            this.trap3.setOffset(0,0);
+            this.trap3.setImmovable(true);
+            this.trap3.setDepth(5);
+
+            this.trap4 = this.physics.add.sprite(3725,1465, 'trap');
+            this.trap4.body.setAllowGravity(false)
+            this.trap4.setSize(100,50);
+            this.trap4.setOffset(0,0);
+            this.trap4.setImmovable(true);
+            this.trap4.setDepth(5);
+
+            this.trap5 = this.physics.add.sprite(1165,3120, 'trap');
+            this.trap5.body.setAllowGravity(false)
+            this.trap5.setSize(100,50);
+            this.trap5.setOffset(0,0);
+            this.trap5.setImmovable(true);
+            this.trap5.setDepth(5);
+
+         
+
+//-----------------heal-----------------------------
+
+            this.heal1 = this.physics.add.sprite(2102, 999, 'Heal');
+            this.heal1.body.setAllowGravity(false);
+            this.heal1.setSize(16, 16);
+            this.heal1.setOffset(0, 0);
+            this.heal1.setImmovable(true);
+            this.heal1.setDepth(5);
+
+            this.heal2 = this.physics.add.sprite(4320, 1864, 'Heal');
+            this.heal2.body.setAllowGravity(false);
+            this.heal2.setSize(16, 16);
+            this.heal2.setOffset(0, 0);
+            this.heal2.setImmovable(true);
+            this.heal2.setDepth(5);
+
+            this.heal3 = this.physics.add.sprite(2633, 744, 'Heal');
+            this.heal3.body.setAllowGravity(false);
+            this.heal3.setSize(16, 16);
+            this.heal3.setOffset(0, 0);
+            this.heal3.setImmovable(true);
+            this.heal3.setDepth(5);
+
+            this.heal4 = this.physics.add.sprite(2789, 1800, 'Heal');
+            this.heal4.body.setAllowGravity(false);
+            this.heal4.setSize(16, 16);
+            this.heal4.setOffset(0, 0);
+            this.heal4.setImmovable(true);
+            this.heal4.setDepth(5);
+
+            
+           
+
+//------------------------------------------------------------
+
+            this.clavier = this.input.keyboard.addKeys('SPACE');
+            const carteDuNiveau = this.add.tilemap("carte");
+            const tileset = carteDuNiveau.addTilesetImage("crypt2", "crypt2");
+            const déco_sol = carteDuNiveau.createLayer("déco_sol", tileset);
+            const murs1 = carteDuNiveau.createLayer("murs1", tileset);
+            const décors = carteDuNiveau.createLayer("décors", tileset);
+            
+            murs1.setCollisionByProperty({ estSolide: true }); //Intégration physique de la carte
+
+            
+            
+
+            this.player = this.physics.add.sprite(100,1516, 'perso'); // Création des sprites :----------------------------------
+
+
+
+            this.dummy1 = this.physics.add.sprite(1867, 1608, 'dummy');
+            this.dummy2 = this.physics.add.sprite(3283, 2280, 'dummy');
+            this.dummy3 = this.physics.add.sprite(3790, 2280, 'dummy');
+            this.dummy4 = this.physics.add.sprite(1062, 3208, 'dummy');
+            this.dummy5 = this.physics.add.sprite(1713, 2696, 'dummy');
+            this.dummy6 = this.physics.add.sprite(1522, 2696, 'dummy');
+            this.dummy7 = this.physics.add.sprite(1022, 3208, 'dummy');
+            this.dummy8 = this.physics.add.sprite(1005, 3208, 'dummy');
+
+            this.casque1 = this.physics.add.sprite(900, 1384, 'casque');
+            this.casque2 = this.physics.add.sprite(1934, 2792, 'casque');
+            this.casque3 = this.physics.add.sprite(4489, 1736, 'casque');
+
+            this.dummy1.setImmovable(true);
+            this.dummy2.setImmovable(true);
+            this.dummy3.setImmovable(true);
+            this.dummy4.setImmovable(true);
+            this.dummy5.setImmovable(true);
+            this.dummy6.setImmovable(true);
+            this.dummy7.setImmovable(true);
+            this.dummy8.setImmovable(true);
+
+            this.casque1.setImmovable(true);
+            this.casque2.setImmovable(true);
+           
+
+            this.player.setCollideWorldBounds(false);
+            this.player.setSize(27, 48);
+            this.player.setOffset(10, 0);
+            this.cameras.main.startFollow(this.player);
+
+            this.physics.add.collider(this.player, murs1);
+            
+            this.physics.add.collider(this.dummy1, murs1);
+            this.physics.add.collider(this.dummy2, murs1);
+            this.physics.add.collider(this.dummy3, murs1);
+            this.physics.add.collider(this.dummy4, murs1);
+            this.physics.add.collider(this.dummy5, murs1);
+            this.physics.add.collider(this.dummy6, murs1);
+            this.physics.add.collider(this.dummy7, murs1);
+            this.physics.add.collider(this.dummy8, murs1);
+
+            this.physics.add.collider(this.player, this.plateform);
+            this.physics.add.collider(this.player, this.plateform2);
+            this.physics.add.collider(this.player, this.plateform3);
+
+            this.physics.add.collider(this.player, this.trap);
+            this.physics.add.collider(this.player, this.trap2);
+            this.physics.add.collider(this.player, this.trap3);
+            this.physics.add.collider(this.player, this.trap4);
+            this.physics.add.collider(this.player, this.trap5);
+
+            this.physics.add.collider(this.casque1, murs1);
+            this.physics.add.collider(this.casque2, murs1);
+            this.physics.add.collider(this.casque3, murs1);
+
+            this.physics.add.collider(this.dummy1, this.player,touche,null,this);
+            this.physics.add.collider(this.dummy2, this.player,touche,null,this);
+            this.physics.add.collider(this.dummy2, this.trap2);
+            this.physics.add.collider(this.dummy3, this.player,touche,null,this);
+            this.physics.add.collider(this.dummy3, this.trap2);
+            
+
+            
+
+            this.physics.add.collider(this.caisse3, murs1);
+            this.physics.add.collider(this.caisse3, this.trap);
+            this.physics.add.collider(this.caisse3, this.player);
+            this.physics.add.collider(this.caisse3, this.dummy1,collisionCallback3dummy1, null, this);
+            this.physics.add.collider(this.caisse3, this.casque1,collisionCallback3casque1, null, this);
+
+            this.physics.add.collider(this.caisse4, murs1);
+            this.physics.add.collider(this.caisse4, this.trap2);
+            this.physics.add.collider(this.caisse4, this.player);
+            this.physics.add.collider(this.caisse4, this.dummy2,collisionCallback4dummy2, null, this);
+            this.physics.add.collider(this.caisse4, this.casque1,collisionCallback4casque1, null, this);
+
+            this.physics.add.collider(this.caisse5, murs1);
+            this.physics.add.collider(this.caisse5, this.player);
+            this.physics.add.collider(this.caisse5, this.dummy2,collisionCallback4dummy2, null, this);
+            this.physics.add.collider(this.caisse5, this.casque1,collisionCallback4casque1, null, this);
+
+            this.physics.add.collider(this.caisse6, murs1);
+            this.physics.add.collider(this.caisse6, this.player);
+            this.physics.add.collider(this.caisse6, this.dummy5,collisionCallback6dummy5, null, this);
+
+            this.physics.add.collider(this.caisse7, murs1);
+            this.physics.add.collider(this.caisse7, this.player);
+            this.physics.add.collider(this.caisse7, this.dummy5,collisionCallback6dummy5, null, this);
+
+
+
+           
+            
+            
+//Sprite de vision :-----------------------------------------
+            this.visionSprite = this.physics.add.sprite(this.dummy1.x, this.dummy1.y, 'invisibleSprite');
+            this.visionSprite.setSize(200, 48);
+            this.visionSprite.body.setAllowGravity(false)
+
+            this.visionSprite2 = this.physics.add.sprite(this.dummy1.x, this.dummy1.y, 'invisibleSprite');
+            this.visionSprite2.setSize(200, 48);
+            this.visionSprite2.body.setAllowGravity(false)
+
+//--
+
+            this.visionSprite3 = this.physics.add.sprite(this.dummy2.x, this.dummy2.y, 'invisibleSprite');
+            this.visionSprite3.setSize(200, 48);
+            this.visionSprite3.body.setAllowGravity(false)
+
+            this.visionSprite4 = this.physics.add.sprite(this.dummy2.x, this.dummy2.y, 'invisibleSprite');
+            this.visionSprite4.setSize(200, 48);
+            this.visionSprite4.body.setAllowGravity(false)
+
+//--
+            this.visionSprite5 = this.physics.add.sprite(this.dummy3.x, this.dummy3.y, 'invisibleSprite');
+            this.visionSprite5.setSize(200, 48);
+            this.visionSprite5.body.setAllowGravity(false)
+
+            this.visionSprite6 = this.physics.add.sprite(this.dummy3.x, this.dummy3.y, 'invisibleSprite');
+            this.visionSprite6.setSize(200, 48);
+            this.visionSprite6.body.setAllowGravity(false)
+
+//--
+            this.visionSprite7 = this.physics.add.sprite(this.dummy4.x, this.dummy4.y, 'invisibleSprite');
+            this.visionSprite7.setSize(200, 48);
+            this.visionSprite7.body.setAllowGravity(false)
+
+            this.visionSprite8 = this.physics.add.sprite(this.dummy4.x, this.dummy4.y, 'invisibleSprite');
+            this.visionSprite8.setSize(200, 48);
+            this.visionSprite8.body.setAllowGravity(false)
+
+//--
+            this.visionSprite9 = this.physics.add.sprite(this.dummy5.x, this.dummy5.y, 'invisibleSprite');
+            this.visionSprite9.setSize(200, 48);
+            this.visionSprite9.body.setAllowGravity(false)
+
+            this.visionSprite10 = this.physics.add.sprite(this.dummy5.x, this.dummy5.y, 'invisibleSprite');
+            this.visionSprite10.setSize(200, 48);
+            this.visionSprite10.body.setAllowGravity(false)
+
+//--
+            this.visionSprite11 = this.physics.add.sprite(this.dummy6.x, this.dummy6.y, 'invisibleSprite');
+            this.visionSprite11.setSize(200, 48);
+            this.visionSprite11.body.setAllowGravity(false)
+
+            this.visionSprite12 = this.physics.add.sprite(this.dummy6.x, this.dummy6.y, 'invisibleSprite');
+            this.visionSprite12.setSize(200, 48);
+            this.visionSprite12.body.setAllowGravity(false)
+
+
+
+     
+
+            
+
+            
+            
+        
+
+//------------------
+            
+            
+//--
+            function collisionCallback3dummy1(caisse3,dummy1){ //Fonction pour détruire un ennemis si une caisse tombe dessus
+                if(caisse3.y < dummy1.y){
+                    console.log ('collision dessus !')
+                    dummy1.destroy();
+                }
+            }
+            function collisionCallback3casque1(caisse3,casque1){ //Fonction pour détruire un ennemis si une caisse tombe dessus
+                if(caisse3.y < casque1.y){
+                    console.log ('collision dessus !')
+                    casque1.destroy();
+                }
+            }
+//--
+            function collisionCallback4dummy2(caisse4,dummy2){ //Fonction pour détruire un ennemis si une caisse tombe dessus
+                if(caisse4.y < dummy2.y){
+                    console.log ('collision dessus !')
+                    dummy2.destroy();
+                }
+            }
+            function collisionCallback4casque1(caisse4,casque1){ //Fonction pour détruire un ennemis si une caisse tombe dessus
+                if(caisse4.y < casque1.y){
+                    console.log ('collision dessus !')
+                    casque1.destroy();
+                }
+            }
+    //--
+            function collisionCallback6dummy5(caisse6,dummy5){ //Fonction pour détruire un ennemis si une caisse tombe dessus
+                if(caisse6.y < dummy5.y){
+                    console.log ('collision dessus !')
+                    dummy5.destroy();
+                }
+            }        
+            
+            function touche(player, dummy1){
+                this.player.setTint(0xff0000);
+
+            }
+
+            
+
+            
+
+         
+
+            hp_bar = this.add.image(250, 200, 'Healthbar05'); // Barre de vie
+            hp_bar.setScrollFactor(0);
+            this.cameras.main.startFollow(this.player); // Camèra fixé au joueur
+
+            this.physics.world.setBounds(0, 0, 91204, 91204); // Frontière de la carte
+            this.cameras.main.setBounds(0, 0, 91204, 91204); // frontières de déplacement de la caméra
+            this.cameras.main.zoom = 1.4;
+
+            this.anims.create({ //Créations des animations
+                key: 'right',
+                frames: this.anims.generateFrameNumbers('perso', { start: 4, end: 7 }),
+                frameRate: 8.5,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'stand',
+                frames: this.anims.generateFrameNumbers('perso', { start: 0, end: 3 }),
+                frameRate: 5,
+                repeat: 0
+            });
+
+            this.anims.create({
+                key: 'jump',
+                frames: this.anims.generateFrameNumbers('perso', { start: 72, end: 72 }),
+                frameRate: 0.2,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'left',
+                frames: this.anims.generateFrameNumbers('perso', { start: 8, end: 11 }),
+                frameRate: 8.5,
+                repeat: -1
+            });
+
+            this.anims.create({
+                key: 'attackR',
+                frames: this.anims.generateFrameNumbers('perso', { start: 12, end: 31 }),
+                frameRate: 30,
+                repeat: 0
+            });
+
+            this.anims.create({
+                key: 'attackL',
+                frames: this.anims.generateFrameNumbers('perso', { start: 33, end: 50 }),
+                frameRate: 30,
+                repeat: 0
+            });
+
+            this.anims.create({
+                key: 'attack',
+                frames: this.anims.generateFrameNumbers('perso', { start: 53, end: 71 }),
+                frameRate: 30,
+                repeat: 0
+            });
+
+            this.anims.create({
+                key: 'crawl',
+                frames: this.anims.generateFrameNumbers('perso', { start: 75, end: 75}),
+                frameRate: 8,
+                repeat: 0
+            });
+
+            this.anims.create({
+                key: 'crawlright',
+                frames: this.anims.generateFrameNumbers('perso', { start: 75, end: 79}),
+                frameRate: 8,
+                repeat: 0
+            });
+
+            this.anims.create({
+                key: 'crawlleft',
+                frames: this.anims.generateFrameNumbers('perso', { start: 80, end: 83}),
+                frameRate: 8,
+                repeat: 0
+            });
+
+
+            
+            cursors = this.input.keyboard.createCursorKeys();
+
+            
+//-------------Deplacement des plateforms :-------------------            
+            this.tweens.add({
+                targets: this.plateform,
+                x: { value: endX, duration: 4500, ease: 'Linear' },
+                yoyo: true, // Permettre le retour à la position de départ
+                repeat: -1 
+            });    
+
+
+
+            this.tweens.add({
+                targets: this.plateform2,
+                x: { value: endX2, duration: 10000, ease: 'Linear' },
+                yoyo: true, // Permettre le retour à la position de départ
+                repeat: -1 
+            });    
+
+            this.tweens.add({
+                targets: this.plateform3,
+                x: { value: endX3, duration: 10000, ease: 'Linear' },
+                yoyo: true, // Permettre le retour à la position de départ
+                repeat: -1 
+            });    
+
+            
+        }
+
+        function update() {
+
+            // Permet de ralentir le "glissement" des caisses apres avoir été poussées
+            this.caisse3.body.setVelocityX(0);
+            this.caisse3.body.setVelocityX(0); 
+            this.caisse4.body.setVelocityX(0);
+            this.caisse5.body.setVelocityX(0);
+            this.caisse6.body.setVelocityX(0);
+            this.caisse7.body.setVelocityX(0);
+            
+
+            console.log('x',this.player.x);
+            console.log('y',this.player.y);
+            
+
+                
+
+                var Platformleft = this.player.body.touching.left; 
+                var Platformright = this.player.body.touching.right;
+
+            if(this.physics.world.overlap(this.casque1, this.spriteInvisible)){
+                this.casque1.destroy();
+
+            }
+
+
+            //-- destruction des ennemis si touché par attaque :
+
+            if(this.physics.world.overlap(this.dummy1, this.spriteInvisible)){
+                this.dummy1.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.dummy2, this.spriteInvisible)){
+                this.dummy2.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.dummy3, this.spriteInvisible)){
+                this.dummy3.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.dummy4, this.spriteInvisible)){
+                this.dummy4.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.dummy5, this.spriteInvisible)){
+                this.dummy5.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.dummy6, this.spriteInvisible)){
+                this.dummy6.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.dummy7, this.spriteInvisible)){
+                this.dummy7.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.dummy8, this.spriteInvisible)){
+                this.dummy8.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.casque1, this.spriteInvisible)){
+                this.casque1.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.casque2, this.spriteInvisible)){
+                this.casque2.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.casque3, this.spriteInvisible)){
+                this.casque3.destroy();
+
+            }
+
+
+
+//-- destruction des caisse si touché par caisse 
+
+
+            if(this.physics.world.overlap(this.trap2, this.caisse5)){
+                this.trap2.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.trap3, this.caisse5)){
+                this.trap3.destroy();
+
+            }
+
+            if(this.physics.world.overlap(this.trap4, this.caisse5)){
+                this.trap4.destroy();
+
+            }
+            
+
+            if(this.physics.world.overlap(this.caisse5, this.trap2)){
+                this.trap2.destroy();
+
+            }
+
+
+
+    //Ronde et aggro :-----------------------------   
+        if(this.dummy1.active) {   
+            if(dummy1isChasing){
+                this.dummy1.setVelocityX(0);
+                let direction = new Phaser.Math.Vector2(this.player.x - this.dummy1.x)
+                direction.normalize();
+                let vitesse = 150;
+                this.dummy1.body.velocity.x = direction.x * vitesse;
+                
+            }  
+            else{
+
+                if (this.dummy1.x <= 1887){
+                    this.dummy1.setVelocityX(50);
+                }
+                else if (this.dummy1.x >= 2100){
+                    this.dummy1.setVelocityX(-50);
+                } 
+
+            }
+        }
+
+        if(this.dummy2.active) {   
+            if(dummy2isChasing){
+                this.dummy2.setVelocityX(0);
+                let direction = new Phaser.Math.Vector2(this.player.x - this.dummy2.x)
+                direction.normalize();
+                let vitesse = 150;
+                this.dummy2.body.velocity.x = direction.x * vitesse;
+                
+            }  
+            else{
+
+                this.dummy2.setVelocityX(0);
+            }
+        }
+
+        if(this.dummy3.active) {   
+            if(dummy3isChasing){
+                this.dummy3.setVelocityX(0);
+                let direction = new Phaser.Math.Vector2(this.player.x - this.dummy3.x)
+                direction.normalize();
+                let vitesse = 150;
+                this.dummy3.body.velocity.x = direction.x * vitesse;
+                
+            }  
+            else{
+
+                this.dummy3.setVelocityX(0);
+            }
+        }
+
+        if(this.dummy4.active) {   
+            if(dummy4isChasing){
+                this.dummy4.setVelocityX(0);
+                let direction = new Phaser.Math.Vector2(this.player.x - this.dummy4.x)
+                direction.normalize();
+                let vitesse = 150;
+                this.dummy4.body.velocity.x = direction.x * vitesse;
+                
+            }  
+            else{
+
+                this.dummy4.setVelocityX(0);
+            }
+        }
+        if(this.dummy5.active) {   
+            if(dummy5isChasing){
+                this.dummy4.setVelocityX(0);
+                let direction = new Phaser.Math.Vector2(this.player.x - this.dummy5.x)
+                direction.normalize();
+                let vitesse = 150;
+                this.dummy5.body.velocity.x = direction.x * vitesse;
+                
+            }  
+            else{
+
+                this.dummy5.setVelocityX(0);
+            }
+        }
+
+        if(this.dummy6.active) {   
+            if(dummy6isChasing){
+                this.dummy6.setVelocityX(0);
+                let direction = new Phaser.Math.Vector2(this.player.x - this.dummy6.x)
+                direction.normalize();
+                let vitesse = 150;
+                this.dummy6.body.velocity.x = direction.x * vitesse;
+                
+            }  
+            else{
+
+                this.dummy6.setVelocityX(0);
+            }
+        }
+
+        if(this.casque3.active) {   
+            if(casque3isChasing){
+                this.casque3.setVelocityX(0);
+                let direction = new Phaser.Math.Vector2(this.player.x - this.casque3.x)
+                direction.normalize();
+                let vitesse = 150;
+                this.casque3.body.velocity.x = direction.x * vitesse;
+                
+            }  
+            else{
+
+                if (this.casque3.x >= 4488){
+                    this.casque3.setVelocityX(-50);
+                }
+                else if (this.casque3.x <= 4163){
+                    this.casque3.setVelocityX(50);
+                } 
+            }
+        }
+//------------------------------
+        if (this.physics.world.overlap(this.player, this.heal1)){
+            this.player.setTint(0xffffff);
+            this.heal1.destroy();
+        }
+
+                
+
+                
+
+                if (this.physics.world.overlap(this.player, this.dummy1)){
+                    invincibility==true
+                }
+
+                if (this.physics.world.overlap(this.player, Surface)){ // Fonction qui permet au joueur de grimper aux murs
+                    
+                    this.player.body.setAllowGravity(false)
+                    this.player.setVelocityX(0)
+
+                        if (cursors.up.isDown) {
+                            this.player.setVelocityY(-160);
+                            this.player.anims.play('left', true);
+                        }
+                        
+                        else if (cursors.down.isDown) {
+                            this.player.setVelocityY(160);
+                            
+                          
+                        }
+
+                    else{
+                        this.player.setVelocityY(0);
+                        
+                    }
+                    
+
+
+                }
+
+                if (this.physics.world.overlap(this.player, pics)){ // Fonction qui inflige des dégats si le joueur touche les pics
+                    
+                    this.player.setTint(0xff0000);
+                    this.player.setVelocityY(300);
+                    this.player.body.setAllowGravity(true)
+                }
+
+                else{
+                    this.player.body.setAllowGravity(true)
+                }
+
+               
+                if (invincibility == true) { //Frame d'invincibilité si dégats pris
+                    if (chrono < 80) {
+                        chrono++;
+                        this.player.setTint(0xff0000);
+                    }
+                    if (chrono >= 80) {
+                        invincibility = false;
+                        chrono = 0;
+                        this.player.setTint(0xffffff);
+                    }
+                }
+
+                    tempVelocityX = 0;
+                    if (cursors.left.isDown ) { //Attribution d'une velocité en fonction des touches
+                        tempVelocityX = -160
+                    }
+                    else if (cursors.right.isDown) {
+                        tempVelocityX = 160;
+                    }
+                    else  {
+                        tempVelocityX = 0;
+                    }
+                    
+                    this.player.setVelocityX(tempVelocityX);
+
+                    if(tempVelocityX<0)
+                    { 
+                        if(this.player.anims.getName() == "attackR" || this.player.anims.getName() == "attackL" || this.player.anims.getName() == "attack" || this.player.anims.getName() == "crawlright" || this.player.anims.getName() == "crawlleft")  //Lancement d'animation en fonction de la velocité
+                        {
+                            if(this.player.anims.isPlaying == false )
+                            {
+                                this.player.anims.play('left', true);
+                            }
+                        }
+                        else{
+                            this.player.anims.play('left',true);
+                        }
+                    }
+                    if(tempVelocityX>0)
+                    {
+                        if(this.player.anims.getName() == "attackR" || this.player.anims.getName() == "attackL" || this.player.anims.getName() == "attack" || this.player.anims.getName() == "crawlright" || this.player.anims.getName() == "crawlleft")
+                        {
+                            if(this.player.anims.isPlaying == false )
+                            {
+                                this.player.anims.play('right', true);
+                            }
+                        }
+
+                        else{
+                            this.player.anims.play('right',true);
+                        }
+                    }
+                    if(tempVelocityX==0)
+                    {
+                        if(this.player.anims.getName() == "attackR" || this.player.anims.getName() == "attackL" || this.player.anims.getName() == "attack"|| this.player.anims.getName() == "crawlright" || this.player.anims.getName() == "crawlleft")
+                        {
+                            if(this.player.anims.isPlaying == false )
+                            {
+                                this.player.anims.play('stand', true);
+                            }
+                        }
+                        else
+                        {
+                            this.player.anims.play('stand', true);
+                        }
+                    }
+                    
+
+                if (cursors.up.isDown && this.player.body.blocked.down) {  //fonction de saut
+                    this.player.setVelocityY(-280);
+                    if(this.player.anims.getName() == "attackR" || this.player.anims.getName() == "attackL" || this.player.anims.getName() == "attack" || this.player.anims.getName() == "crawl")
+                    {
+                        if(this.player.anims.isPlaying == false )
+                                {
+                                    this.player.anims.play('stand',true);
+                                }
+                        else
+                            {
+                                this.player.anims.play('jump', true);
+                            }
+                    }
+                }
+
+                
+
+        
+
+            if (cursors.down.isDown && this.player.body.blocked.down && !cursors.left.isDown && !cursors.right.isDown ){
+
+                if(this.player.anims.isPlaying == false )
+                        {
+                                this.player.anims.play('stand',true);
+                        }
+                else
+                    {
+                        this.player.setSize(37, 32);
+                        this.player.setOffset(5, 15);
+                        this.player.anims.play('crawl', true);
+                    }
+            }
+
+            else if(cursors.down.isUp)
+            {
+                this.player.setSize(29, 48);
+            }
+
+
+            if (cursors.down.isDown && this.player.body.blocked.down && cursors.left.isDown ){
+                if(this.player.anims.isPlaying == false )
+                        {
+                                this.player.anims.play('stand',true);
+                        }
+                else
+                    {
+                            this.player.anims.play('crawlleft', true);
+                    }
+            }
+
+            else if (cursors.down.isDown && this.player.body.blocked.down && cursors.right.isDown ){
+                if(this.player.anims.isPlaying == false )
+                        {
+                                this.player.anims.play('stand',true);
+                        }
+                else
+                    {
+                            this.player.anims.play('crawlright', true);
+                    }
+            }
+
+           
+            
+            
+               
+               if (this.clavier.SPACE.isDown) { // Fonction d'attaque
+                   
+                    if(tempVelocityX >0){
+                        this.player.anims.play("attackR");
+                        setTimeout(() => {
+                            this.spriteInvisible.setPosition(this.player.x + offsetX , this.player.y + offsetY);
+                            this.spriteInvisible.setVisible(true);
+                        }, 700);
+                    }
+                    
+
+                    if(tempVelocityX<0){
+                    this.player.anims.play("attackL");
+                    setTimeout(() => {
+                        this.spriteInvisible.setPosition(this.player.x + offset2X , this.player.y + offset2Y);
+                        this.spriteInvisible.setVisible(true);
+                    }, 700);
+                    }
+
+                    if(tempVelocityX==0){
+                    this.player.anims.play("attack");
+                    setTimeout(() => {
+                        this.spriteInvisible.setPosition(this.player.x + offsetX , this.player.y + offsetY);
+                        this.spriteInvisible.setVisible(true);
+                    },700);
+                    }
+                        
+                    setTimeout(() => {
+                    this.spriteInvisible.x += 9999;
+                    this.spriteInvisible.y += 9999;
+                    }, 1000 );
+                        
+                }
+                
+                this.visionSprite.setOffset(20, 0); //Système de détection et d'aggro des ennemis :
+                this.visionSprite.setPosition(this.dummy1.x + offsetX , this.dummy1.y + offsetY);
+
+                this.visionSprite2.setOffset(-215, 0);
+                this.visionSprite2.setPosition(this.dummy1.x + offsetX , this.dummy1.y + offsetY);
+
+                this.visionSprite3.setOffset(20, 0);
+                this.visionSprite3.setPosition(this.dummy2.x + offsetX , this.dummy2.y + offsetY);
+
+                this.visionSprite4.setOffset(-215, 0);
+                this.visionSprite4.setPosition(this.dummy2.x + offsetX , this.dummy2.y + offsetY);
+
+                this.visionSprite5.setOffset(20, 0);
+                this.visionSprite5.setPosition(this.dummy3.x + offsetX , this.dummy3.y + offsetY);
+
+                this.visionSprite6.setOffset(-215, 0);
+                this.visionSprite6.setPosition(this.dummy3.x + offsetX , this.dummy3.y + offsetY);
+
+                this.visionSprite7.setOffset(20, 0);
+                this.visionSprite7.setPosition(this.dummy4.x + offsetX , this.dummy4.y + offsetY);
+
+                this.visionSprite8.setOffset(-215, 0);
+                this.visionSprite8.setPosition(this.dummy4.x + offsetX , this.dummy4.y + offsetY);
+
+                this.visionSprite9.setOffset(20, 0);
+                this.visionSprite9.setPosition(this.dummy5.x + offsetX , this.dummy5.y + offsetY);
+
+                this.visionSprite10.setOffset(-215, 0);
+                this.visionSprite10.setPosition(this.dummy5.x + offsetX , this.dummy5.y + offsetY);
+
+                this.visionSprite11.setOffset(20, 0);
+                this.visionSprite11.setPosition(this.casque3.x + offsetX , this.casque3.y + offsetY);
+
+                this.visionSprite12.setOffset(-215, 0);
+                this.visionSprite12.setPosition(this.casque3.x + offsetX , this.casque3.y + offsetY);
+
+
+                if(this.dummy1.active) {
+                    
+                    
+                        if(this.physics.world.overlap(this.player, this.visionSprite)){
+                            if(this.dummy1.body.velocity.x > 0){
+                                dummy1isChasing = true;
+                               
+                            }
+                            else{
+                                dummy1isChasing = false;
+                            }
+                        }
+
+                        else if(this.physics.world.overlap(this.player, this.visionSprite2)){
+                            if(this.dummy1.body.velocity.x < 0){
+                                dummy1isChasing = true;
+                                
+                            }
+                            else{
+                                dummy1isChasing = false;
+                            }
+
+
+                        }
+                
+                }
+
+                if(this.dummy2.active) {
+                    
+                    
+                    if(this.physics.world.overlap(this.player, this.visionSprite3)){
+                        if(this.dummy2.body.velocity.x > 0){
+                            dummy2isChasing = true;
+                           
+                        }
+                        else{
+                            dummy2isChasing = false;
+                        }
+                    }
+
+                    else if(this.physics.world.overlap(this.player, this.visionSprite4)){
+                        if(this.dummy2.body.velocity.x < 0){
+                            dummy2isChasing = true;
+                            
+                        }
+                        else{
+                            dummy2isChasing = false;
+                        }
+
+
+                    }
+                    
+            
+                }
+
+                if(this.dummy3.active) {
+                    
+                    
+                    if(this.physics.world.overlap(this.player, this.visionSprite5)){
+                        if(this.dummy3.body.velocity.x > 0){
+                            dummy3isChasing = true;
+                           
+                        }
+                        else{
+                            dummy3isChasing = false;
+                        }
+                    }
+
+                    else if(this.physics.world.overlap(this.player, this.visionSprite6)){
+                        if(this.dummy3.body.velocity.x < 0){
+                            dummy3isChasing = true;
+                            
+                        }
+                        else{
+                            dummy3isChasing = false;
+                        }
+
+
+                    }
+                    
+            
+                }
+
+                if(this.dummy4.active) {
+                    
+                    
+                    if(this.physics.world.overlap(this.player, this.visionSprite7)){
+                        if(this.dummy4.body.velocity.x > 0){
+                            dummy4isChasing = true;
+                           
+                        }
+                        else{
+                            dummy4isChasing = false;
+                        }
+                    }
+
+                    else if(this.physics.world.overlap(this.player, this.visionSprite8)){
+                        if(this.dummy4.body.velocity.x < 0){
+                            dummy4isChasing = true;
+                            
+                        }
+                        else{
+                            dummy4isChasing = false;
+                        }
+
+
+                    }
+                    
+            
+                }
+
+                if(this.dummy5.active) {
+                    
+                    
+                    if(this.physics.world.overlap(this.player, this.visionSprite9)){
+                        if(this.dummy5.body.velocity.x > 0){
+                            dummy5isChasing = true;
+                           
+                        }
+                        else{
+                            dummy5isChasing = false;
+                        }
+                    }
+
+                    else if(this.physics.world.overlap(this.player, this.visionSprite10)){
+                        if(this.dummy5.body.velocity.x < 0){
+                            dummy5isChasing = true;
+                            
+                        }
+                        else{
+                            dummy5isChasing = false;
+                        }
+
+
+                    }
+                    
+            
+                }
+
+
+                if(this.casque3.active) {
+                    
+                    
+                    if(this.physics.world.overlap(this.player, this.visionSprite12)){
+                        if(this.casque3.body.velocity.x <= 0){
+                            casque3isChasing = true;
+                           
+                        }
+                        else{
+                            casque3isChasing = false;
+                        }
+                    }
+
+                    else if(this.physics.world.overlap(this.player, this.visionSprite11)){
+                        if(this.casque3.body.velocity.x >= 0){
+                            casque3isChasing = true;
+                            
+                        }
+                        else{
+                            casque3isChasing = false;
+                        }
+
+
+                    }
+                    
+            
+                }
+
+                
+
+
+                
+              
+            }
+        
+    </script>
+</body>
+
+</html>
